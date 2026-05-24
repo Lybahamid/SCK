@@ -1,0 +1,49 @@
+[
+  {
+    "title": "Building a REST API with FastAPI",
+    "mapping": {
+      "msg1": {
+        "message": {
+          "author": {"role": "user"},
+          "content": {"parts": ["I want to build a REST API using FastAPI and PostgreSQL. Where do I start?"]},
+          "create_time": 1700000000
+        }
+      },
+      "msg2": {
+        "message": {
+          "author": {"role": "assistant"},
+          "content": {"parts": ["Great choice. Start by installing FastAPI, uvicorn, sqlalchemy, and psycopg2. Then set up your project structure with a main.py entry point, a models folder for your database models, a schemas folder for Pydantic schemas, and a routers folder for your endpoints."]},
+          "create_time": 1700000060
+        }
+      },
+      "msg3": {
+        "message": {
+          "author": {"role": "user"},
+          "content": {"parts": ["How do I connect FastAPI to PostgreSQL using SQLAlchemy?"]},
+          "create_time": 1700000120
+        }
+      },
+      "msg4": {
+        "message": {
+          "author": {"role": "assistant"},
+          "content": {"parts": ["Create a database.py file with the following setup. from sqlalchemy import create_engine. from sqlalchemy.ext.declarative import declarative_base. from sqlalchemy.orm import sessionmaker. DATABASE_URL = postgresql://user:password@localhost/dbname. engine = create_engine(DATABASE_URL). SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine). Base = declarative_base()."]},
+          "create_time": 1700000180
+        }
+      },
+      "msg5": {
+        "message": {
+          "author": {"role": "user"},
+          "content": {"parts": ["What is the next step after setting up the database connection?"]},
+          "create_time": 1700000240
+        }
+      },
+      "msg6": {
+        "message": {
+          "author": {"role": "assistant"},
+          "content": {"parts": ["The next step is to define your database models by creating classes that inherit from Base. Then create your Pydantic schemas for request and response validation. After that build your CRUD functions and finally wire everything together in your router endpoints."]},
+          "create_time": 1700000300
+        }
+      }
+    }
+  }
+]
