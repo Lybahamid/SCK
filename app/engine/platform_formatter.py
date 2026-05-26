@@ -1,14 +1,9 @@
-def format_for_platform(context: str, platform: str) -> str:
+def format_for_platform(
+    context: str,
+    platform: str,
+) -> str:
     """
-    Formats the generated context document for the target AI platform.
-    Different platforms respond better to different formatting styles.
-
-    Parameters:
-        context  : Raw generated context string
-        platform : chatgpt | claude | gemini | generic
-
-    Returns:
-        Formatted context string ready to paste into the target platform
+    Formats generated context for a specific target AI platform.
     """
 
     formatters = {
@@ -18,14 +13,19 @@ def format_for_platform(context: str, platform: str) -> str:
         "generic": _format_generic,
     }
 
-    formatter = formatters.get(platform, _format_generic)
+    formatter = formatters.get(
+        platform,
+        _format_generic,
+    )
+
     return formatter(context)
 
 
+# ============================================================================
+# CHATGPT FORMAT
+# ============================================================================
+
 def _format_for_chatgpt(context: str) -> str:
-    """
-    ChatGPT responds well to system-message style context blocks.
-    """
     return (
         "[SYSTEM CONTEXT - START]\n\n"
         f"{context}\n\n"
@@ -35,10 +35,11 @@ def _format_for_chatgpt(context: str) -> str:
     )
 
 
+# ============================================================================
+# CLAUDE FORMAT
+# ============================================================================
+
 def _format_for_claude(context: str) -> str:
-    """
-    Claude responds well to XML-style structured context.
-    """
     return (
         "<context>\n\n"
         f"{context}\n\n"
@@ -48,10 +49,11 @@ def _format_for_claude(context: str) -> str:
     )
 
 
+# ============================================================================
+# GEMINI FORMAT
+# ============================================================================
+
 def _format_for_gemini(context: str) -> str:
-    """
-    Gemini responds well to clearly labeled sections.
-    """
     return (
         "**PREVIOUS SESSION CONTEXT**\n\n"
         f"{context}\n\n"
@@ -60,12 +62,43 @@ def _format_for_gemini(context: str) -> str:
     )
 
 
+# ============================================================================
+# GENERIC FORMAT
+# ============================================================================
+
 def _format_generic(context: str) -> str:
-    """
-    Generic format that works across all platforms.
-    """
     return (
         f"{context}\n\n"
         "---\n"
         "Please continue from where we left off."
     )
+
+
+# ============================================================================
+# PLATFORM FORMATTER CLASS
+# ============================================================================
+
+class PlatformFormatter:
+    """
+    Class wrapper around formatting functions.
+    Used by the test suite and any class-based integrations.
+    """
+
+    @staticmethod
+    def format(
+        session,
+        strategy: str = "full",
+        target_platform: str = "generic",
+    ) -> str:
+
+        from app.engine.context_engine import ContextEngine
+
+        engine = ContextEngine()
+
+        result = engine.generate(
+            session=session,
+            strategy=strategy,
+            target_platform=target_platform,
+        )
+
+        return result["context"]
