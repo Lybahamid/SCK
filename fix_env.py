@@ -1,3 +1,5 @@
+# fix_env.py — run once then delete
+content = """\
 from logging.config import fileConfig
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
@@ -5,13 +7,16 @@ from alembic import context
 import sys
 import os
 
-# Resolve project root so app imports work
+# ── Resolve project root ───────────────────────────────────────────────────────
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from app.models.database import Base
 from app.config import settings
 
+# ── Alembic Config ─────────────────────────────────────────────────────────────
 config = context.config
+
+# Use the DATABASE_URL property from your Settings class
 config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
 
 if config.config_file_name is not None:
@@ -51,3 +56,9 @@ if context.is_offline_mode():
     run_migrations_offline()
 else:
     run_migrations_online()
+"""
+
+with open("migrations/env.py", "w", encoding="utf-8") as f:
+    f.write(content)
+
+print("migrations/env.py written successfully")
