@@ -13,4 +13,4 @@ env/
 .DS_Store
 Thumbs.db
 .vscode/
-node_modules/
+node_modules/alembic.ini 

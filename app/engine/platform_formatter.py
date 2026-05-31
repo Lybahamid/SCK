@@ -1,3 +1,32 @@
+class PlatformFormatter:
+    """
+    Class wrapper around platform formatting functions.
+    Provides a static interface for the test suite and
+    any other code that prefers class-based access.
+    """
+
+    @staticmethod
+    def format(
+        session,
+        strategy: str = "full",
+        target_platform: str = "generic",
+    ) -> str:
+        """
+        Generates and formats context for a given session.
+        Accepts a ParsedSession object, strategy, and target platform.
+        Returns a formatted context string.
+        """
+        from app.engine.context_engine import ContextEngine
+
+        engine = ContextEngine()
+        result = engine.generate(
+            session=session,
+            strategy=strategy,
+            target_platform=target_platform,
+        )
+        return result["context"]
+
+
 def format_for_platform(context: str, platform: str) -> str:
     """
     Formats the generated context document for the target AI platform.
@@ -69,3 +98,4 @@ def _format_generic(context: str) -> str:
         "---\n"
         "Please continue from where we left off."
     )
+    
