@@ -17,29 +17,54 @@ from app.parsers.base_parser import ParsedMessage, ParsedSession
 
 @pytest.fixture(scope="function")
 def test_db():
-    """Create an in-memory SQLite database for testing."""
-    engine = create_engine("sqlite:///:memory:", connect_args={"check_same_thread": False})
-    Base.metadata.create_all(engine)
-    TestSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+    """
+    Creates an in-memory SQLite database for testing.
+    Uses StaticPool so all connections share the same DB.
+    """
+
+    from sqlalchemy.pool import StaticPool
+
+    engine = create_engine(
+        "sqlite://",
+        connect_args={"check_same_thread": False},
+        poolclass=StaticPool,
+    )
+
+    # Create all tables
+    Base.metadata.create_all(bind=engine)
+
+    TestingSessionLocal = sessionmaker(
+        autocommit=False,
+        autoflush=False,
+        bind=engine,
+    )
 
     def override_get_db():
-        db = TestSessionLocal()
+        db = TestingSessionLocal()
+
         try:
             yield db
+
         finally:
             db.close()
 
+    # Override FastAPI dependency
     app.dependency_overrides[get_db] = override_get_db
+
     yield engine
+
+    # Cleanup
     app.dependency_overrides.clear()
+    Base.metadata.drop_all(bind=engine)
 
 
 @pytest.fixture(scope="function")
 def test_client(test_db):
-    """FastAPI TestClient with in-memory database."""
+    """
+    FastAPI TestClient using the in-memory DB.
+    """
+
     return TestClient(app)
-
-
 # ============================================================================
 # TEST DATA FIXTURES - CHATGPT
 # ============================================================================

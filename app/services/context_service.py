@@ -1,12 +1,17 @@
 from sqlalchemy.orm import Session as DBSession
 from sqlalchemy import desc
-from app.models.database import GeneratedContext, Session
+from app.models.database import GeneratedContext
 from app.parsers.base_parser import ParsedSession
 from app.engine.context_engine import ContextEngine
 import uuid
 
+
 engine = ContextEngine()
 
+
+# ============================================================================
+# GENERATE + SAVE CONTEXT
+# ============================================================================
 
 def generate_and_save_context(
     db: DBSession,
@@ -16,19 +21,18 @@ def generate_and_save_context(
     target_platform: str = "generic",
 ) -> dict:
     """
-    Generates a context document from a parsed session
+    Generates a context document using the ContextEngine
     and saves it to the database.
-    Returns the generated context data.
     """
 
-    # Generate context using the context engine
+    # Generate context
     result = engine.generate(
         session=parsed_session,
         strategy=strategy,
         target_platform=target_platform,
     )
 
-    # Save generated context to database
+    # Save generated context
     db_context = GeneratedContext(
         id=str(uuid.uuid4()),
         session_id=session_id,
@@ -41,70 +45,95 @@ def generate_and_save_context(
     db.commit()
     db.refresh(db_context)
 
-    # Return enriched result with database ID
+    # Add IDs to response
     result["context_id"] = db_context.id
     result["session_id"] = session_id
+
     return result
 
+
+# ============================================================================
+# GET CONTEXTS BY SESSION
+# ============================================================================
 
 def get_contexts_by_session(
     db: DBSession,
     session_id: str,
 ) -> list:
     """
-    Returns all generated contexts for a given session.
-    Most recent first.
+    Returns all generated contexts for a session.
     """
+
     return (
         db.query(GeneratedContext)
-        .filter(GeneratedContext.session_id == session_id)
+        .filter(
+            GeneratedContext.session_id == session_id
+        )
         .order_by(desc(GeneratedContext.created_at))
         .all()
     )
 
 
+# ============================================================================
+# GET CONTEXT BY ID
+# ============================================================================
+
 def get_context_by_id(
     db: DBSession,
     context_id: str,
-) -> GeneratedContext:
+) -> GeneratedContext | None:
     """
-    Returns a single generated context by its ID.
-    Returns None if not found.
+    Returns a generated context by ID.
     """
+
     return (
         db.query(GeneratedContext)
-        .filter(GeneratedContext.id == context_id)
+        .filter(
+            GeneratedContext.id == context_id
+        )
         .first()
     )
 
+
+# ============================================================================
+# GET LATEST CONTEXT
+# ============================================================================
 
 def get_latest_context(
     db: DBSession,
     session_id: str,
-) -> GeneratedContext:
+) -> GeneratedContext | None:
     """
-    Returns the most recently generated context for a session.
-    Returns None if no contexts exist for this session.
+    Returns the latest generated context for a session.
     """
+
     return (
         db.query(GeneratedContext)
-        .filter(GeneratedContext.session_id == session_id)
+        .filter(
+            GeneratedContext.session_id == session_id
+        )
         .order_by(desc(GeneratedContext.created_at))
         .first()
     )
 
+
+# ============================================================================
+# DELETE CONTEXT
+# ============================================================================
 
 def delete_context(
     db: DBSession,
     context_id: str,
 ) -> bool:
     """
-    Deletes a generated context by its ID.
-    Returns True if deleted, False if not found.
+    Deletes a generated context by ID.
     """
+
     db_context = (
         db.query(GeneratedContext)
-        .filter(GeneratedContext.id == context_id)
+        .filter(
+            GeneratedContext.id == context_id
+        )
         .first()
     )
 
@@ -113,8 +142,13 @@ def delete_context(
 
     db.delete(db_context)
     db.commit()
+
     return True
 
+
+# ============================================================================
+# GET ALL CONTEXTS
+# ============================================================================
 
 def get_all_contexts(
     db: DBSession,
@@ -122,9 +156,9 @@ def get_all_contexts(
     limit: int = 10,
 ) -> dict:
     """
-    Returns a paginated list of all generated contexts.
-    Most recent first.
+    Returns paginated generated contexts.
     """
+
     offset = (page - 1) * limit
 
     total = db.query(GeneratedContext).count()

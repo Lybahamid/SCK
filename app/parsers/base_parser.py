@@ -45,17 +45,13 @@ class BaseParser(ABC):
 
     @abstractmethod
     def parse(self, raw_input) -> ParsedSession:
-        """
-        Takes raw input (JSON dict, string, URL, etc.)
-        Returns a unified ParsedSession object.
-        Must be implemented by every parser.
-        """
         pass
 
     def validate_messages(self, messages: List[ParsedMessage]) -> bool:
         """
         Basic validation to ensure parsed messages are usable.
         """
+
         if not messages:
             return False
 
@@ -67,8 +63,8 @@ class BaseParser(ABC):
     def clean_content(self, text: str) -> str:
         """
         Cleans raw message text.
-        Strips excessive whitespace and empty lines.
         """
+
         if not text:
             return ""
 

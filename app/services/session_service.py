@@ -1,19 +1,25 @@
 from sqlalchemy.orm import Session as DBSession
 from sqlalchemy import desc
-from app.models.database import Session, Message, GeneratedContext
-from app.models.schemas import SessionCreate, GeneratedContextCreate
+from app.models.database import Session, Message
 from app.parsers.base_parser import ParsedSession
 import uuid
 
 
-def create_session(db: DBSession, parsed_session: ParsedSession) -> Session:
+# ============================================================================
+# CREATE SESSION
+# ============================================================================
+
+def create_session(
+    db: DBSession,
+    parsed_session: ParsedSession,
+) -> Session:
     """
-    Saves a parsed session and all its messages to the database.
-    Returns the created Session object.
+    Saves a parsed session and all associated messages
+    to the database.
     """
+
     session_id = str(uuid.uuid4())
 
-    # Create session record
     db_session = Session(
         id=session_id,
         title=parsed_session.title,
@@ -21,11 +27,13 @@ def create_session(db: DBSession, parsed_session: ParsedSession) -> Session:
         input_method=parsed_session.input_method,
         message_count=parsed_session.message_count,
     )
+
     db.add(db_session)
     db.flush()
 
-    # Create message records
+    # Save all messages
     for msg in parsed_session.messages:
+
         db_message = Message(
             id=str(uuid.uuid4()),
             session_id=session_id,
@@ -33,20 +41,37 @@ def create_session(db: DBSession, parsed_session: ParsedSession) -> Session:
             content=msg.content,
             position=msg.position,
         )
+
         db.add(db_message)
 
     db.commit()
     db.refresh(db_session)
+
     return db_session
 
 
-def get_session_by_id(db: DBSession, session_id: str) -> Session:
-    """
-    Retrieves a session by its ID including all messages.
-    Returns None if not found.
-    """
-    return db.query(Session).filter(Session.id == session_id).first()
+# ============================================================================
+# GET SESSION BY ID
+# ============================================================================
 
+def get_session_by_id(
+    db: DBSession,
+    session_id: str,
+) -> Session | None:
+    """
+    Returns a session by ID including relationships.
+    """
+
+    return (
+        db.query(Session)
+        .filter(Session.id == session_id)
+        .first()
+    )
+
+
+# ============================================================================
+# GET ALL SESSIONS
+# ============================================================================
 
 def get_all_sessions(
     db: DBSession,
@@ -54,9 +79,9 @@ def get_all_sessions(
     limit: int = 10,
 ) -> dict:
     """
-    Returns a paginated list of all sessions.
-    Most recent sessions first.
+    Returns paginated session list.
     """
+
     offset = (page - 1) * limit
 
     total = db.query(Session).count()
@@ -77,42 +102,61 @@ def get_all_sessions(
     }
 
 
-def delete_session(db: DBSession, session_id: str) -> bool:
+# ============================================================================
+# DELETE SESSION
+# ============================================================================
+
+def delete_session(
+    db: DBSession,
+    session_id: str,
+) -> bool:
     """
-    Deletes a session and all its messages and contexts.
-    Returns True if deleted, False if not found.
+    Deletes a session and all related data.
     """
-    db_session = db.query(Session).filter(
-        Session.id == session_id
-    ).first()
+
+    db_session = (
+        db.query(Session)
+        .filter(Session.id == session_id)
+        .first()
+    )
 
     if not db_session:
         return False
 
     db.delete(db_session)
     db.commit()
+
     return True
 
 
+# ============================================================================
+# SEARCH SESSIONS
+# ============================================================================
+
 def search_sessions(
     db: DBSession,
-    platform: str = None,
-    input_method: str = None,
+    platform: str | None = None,
+    input_method: str | None = None,
     page: int = 1,
     limit: int = 10,
 ) -> dict:
     """
-    Searches sessions with optional filters.
-    Filters by platform and input method.
+    Searches sessions using optional filters.
     """
+
     offset = (page - 1) * limit
+
     query = db.query(Session)
 
     if platform:
-        query = query.filter(Session.source_platform == platform)
+        query = query.filter(
+            Session.source_platform == platform
+        )
 
     if input_method:
-        query = query.filter(Session.input_method == input_method)
+        query = query.filter(
+            Session.input_method == input_method
+        )
 
     total = query.count()
 
