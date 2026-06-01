@@ -10,9 +10,9 @@ class ParsedMessage(BaseModel):
     Regardless of input source, every message becomes this.
     """
 
-    role: str
-    content: str
-    position: int
+    role: str                           # "user" or "assistant"
+    content: str                        # Raw message text
+    position: int                       # Order in conversation (0-indexed)
     timestamp: Optional[datetime] = None
 
 
@@ -21,12 +21,12 @@ class ParsedSession(BaseModel):
     Unified session format returned by all parsers.
     """
 
-    title: Optional[str] = None
-    source_platform: str
-    input_method: str
-    messages: List[ParsedMessage]
+    title: Optional[str] = None         # Conversation title if available
+    source_platform: str                # chatgpt, claude, gemini, unknown
+    input_method: str                   # json_upload, share_link, raw_text, extension
+    messages: List[ParsedMessage]       # All messages in order
     message_count: Optional[int] = None
-    raw_input: Optional[str] = None
+    raw_input: Optional[str] = None     # Original raw input for debugging
 
     def model_post_init(self, __context):
         """
@@ -69,11 +69,6 @@ class BaseParser(ABC):
             return ""
 
         lines = text.splitlines()
-
-        cleaned = [
-            line.strip()
-            for line in lines
-            if line.strip()
-        ]
+        cleaned = [line.strip() for line in lines if line.strip()]
 
         return "\n".join(cleaned)
