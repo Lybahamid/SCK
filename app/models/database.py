@@ -227,25 +227,13 @@ class GeneratedContext(Base):
     )
 
     strategy = Column(
-        Enum(
-            "full",
-            "concise",
-            "technical",
-            "creative",
-            name="context_strategy_enum",
-        ),
+        String(50),
         nullable=False,
         default="full",
     )
 
     target_platform = Column(
-        Enum(
-            "chatgpt",
-            "claude",
-            "gemini",
-            "generic",
-            name="target_platform_enum",
-        ),
+        String(50),
         nullable=False,
         default="generic",
     )

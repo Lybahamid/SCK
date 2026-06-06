@@ -16,7 +16,7 @@ class Settings(BaseSettings):
     DB_USER: str = "root"
     DB_PASSWORD: str = ""
     DB_NAME: str = "sck_db"
-
+    GEMINI_API_KEY: str = ""
     @property
     def DATABASE_URL(self) -> str:
         return (
