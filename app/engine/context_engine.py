@@ -1,5 +1,12 @@
 from app.parsers.base_parser import ParsedSession
-from app.engine.strategies import full, concise, technical, creative
+from app.engine.strategies import (
+    full,
+    concise,
+    technical,
+    creative,
+    full_ai,
+)
+
 from app.engine.platform_formatter import format_for_platform
 
 
@@ -8,8 +15,8 @@ STRATEGIES = {
     "concise": concise.generate,
     "technical": technical.generate,
     "creative": creative.generate,
+    "full_ai": full_ai.generate,
 }
-
 
 class ContextEngine:
     """

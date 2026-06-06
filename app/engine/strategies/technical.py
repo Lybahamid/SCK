@@ -4,114 +4,300 @@ from typing import List
 
 def generate(session: ParsedSession) -> str:
     """
-    Technical context strategy.
-    Prioritizes code blocks, errors, and technical decisions.
-    Best for coding and debugging sessions.
+    Technical Context Strategy V2
+
+    Focus:
+    - Problems
+    - Errors
+    - Resolutions
+    - Current State
+    - Next Work Item
+
+    Designed for:
+    - Coding sessions
+    - Debugging
+    - Architecture discussions
     """
 
     messages = session.messages
-    user_messages = [m for m in messages if m.role == "user"]
-    assistant_messages = [m for m in messages if m.role == "assistant"]
+
+    user_messages = [
+        m.content.strip()
+        for m in messages
+        if m.role == "user"
+    ]
+
+    assistant_messages = [
+        m.content.strip()
+        for m in messages
+        if m.role == "assistant"
+    ]
 
     sections = []
 
+    # -----------------------------------------
     # Header
+    # -----------------------------------------
+
     sections.append(
-        f"# Technical Context\n"
+        f"# Technical Continuation Context\n"
         f"Platform : {session.source_platform.title()}\n"
-        f"Messages : {session.message_count}\n"
+        f"Messages : {session.message_count}"
     )
 
-    # Problem statement from first user message
+    # -----------------------------------------
+    # Problem
+    # -----------------------------------------
+
     if user_messages:
         sections.append(
-            f"## Problem Statement\n"
-            f"{_truncate(user_messages[0].content, 400)}"
+            "## Problem Statement\n"
+            f"{_truncate(user_messages[0], 500)}"
         )
 
-    # All code blocks with source
-    code_blocks = _extract_code_blocks_with_source(messages)
-    if code_blocks:
-        code_lines = ["## Code"]
-        for block in code_blocks:
-            code_lines.append(
-                f"\n**Source:** {block['role'].title()}"
-            )
-            code_lines.append(f"```\n{block['code']}\n```")
-        sections.append("\n".join(code_lines))
+    # -----------------------------------------
+    # Errors
+    # -----------------------------------------
 
-    # Errors mentioned
     errors = _extract_errors(messages)
+
     if errors:
-        error_lines = ["## Errors Encountered"]
-        for i, error in enumerate(errors):
-            error_lines.append(f"{i + 1}. {error}")
-        sections.append("\n".join(error_lines))
+        lines = ["## Errors Encountered"]
 
-    # Current state
-    if assistant_messages:
+        for err in errors:
+            lines.append(f"- {err}")
+
+        sections.append("\n".join(lines))
+
+    # -----------------------------------------
+    # Technical Components
+    # -----------------------------------------
+
+    components = _extract_components(messages)
+
+    if components:
+        lines = ["## Relevant Components"]
+
+        for component in components:
+            lines.append(f"- {component}")
+
+        sections.append("\n".join(lines))
+
+    # -----------------------------------------
+    # Resolutions
+    # -----------------------------------------
+
+    resolutions = _extract_resolutions(messages)
+
+    if resolutions:
+        lines = ["## Resolutions and Findings"]
+
+        for item in resolutions:
+            lines.append(f"- {item}")
+
+        sections.append("\n".join(lines))
+
+    # -----------------------------------------
+    # Code Blocks
+    # -----------------------------------------
+
+    code_blocks = _extract_code_blocks(messages)
+
+    if code_blocks:
+        lines = ["## Referenced Code"]
+
+        for i, block in enumerate(code_blocks):
+            lines.append(
+                f"\n### Snippet {i + 1}"
+            )
+
+            lines.append(
+                f"```\n{block}\n```"
+            )
+
+        sections.append("\n".join(lines))
+
+    # -----------------------------------------
+    # Current State
+    # -----------------------------------------
+
+    current_state = _current_state(messages)
+
+    if current_state:
         sections.append(
-            f"## Current State\n"
-            f"{_truncate(assistant_messages[-1].content, 600)}"
+            "## Current State\n"
+            f"{current_state}"
         )
 
-    # Next task
-    if user_messages:
+    # -----------------------------------------
+    # Next Task
+    # -----------------------------------------
+
+    next_task = _next_task(messages)
+
+    if next_task:
         sections.append(
-            f"## Next Task\n"
-            f"{_truncate(user_messages[-1].content, 300)}"
+            "## Next Task\n"
+            f"{next_task}"
         )
 
-    # Continuation
+    # -----------------------------------------
+    # Continuation Guidance
+    # -----------------------------------------
+
     sections.append(
-        "---\n"
-        "Please continue the technical work from where we left off.\n"
-        "Reference the code and context above."
+        "## Continuation Guidance\n"
+        "Continue the technical discussion while preserving "
+        "the problem history, technical decisions, "
+        "resolutions already attempted, and remaining tasks."
     )
 
     return "\n\n".join(sections)
 
 
-def _extract_code_blocks_with_source(messages) -> List[dict]:
-    blocks = []
+# ==================================================
+# Helpers
+# ==================================================
+
+def _extract_errors(messages) -> List[str]:
+    keywords = [
+        "error",
+        "exception",
+        "traceback",
+        "invalidrequesterror",
+        "typeerror",
+        "nameerror",
+        "valueerror",
+        "failed",
+    ]
+
+    results = []
+
     for msg in messages:
+        content = msg.content.strip()
+
+        lower = content.lower()
+
+        if any(k in lower for k in keywords):
+            results.append(content)
+
+    return list(dict.fromkeys(results))[:8]
+
+
+def _extract_components(messages) -> List[str]:
+    keywords = [
+        "model",
+        "models",
+        "service",
+        "services",
+        "api",
+        "database",
+        "session",
+        "message",
+        "context",
+        "sqlalchemy",
+        "fastapi",
+        "migration",
+        "alembic",
+    ]
+
+    components = []
+
+    for msg in messages:
+        content = msg.content.strip()
+
+        lower = content.lower()
+
+        if any(k in lower for k in keywords):
+            components.append(content)
+
+    return list(dict.fromkeys(components))[:10]
+
+
+def _extract_resolutions(messages) -> List[str]:
+    keywords = [
+        "fixed",
+        "resolved",
+        "working",
+        "that fixed",
+        "implemented",
+        "completed",
+        "added",
+    ]
+
+    resolutions = []
+
+    for msg in messages:
+        content = msg.content.strip()
+
+        lower = content.lower()
+
+        if any(k in lower for k in keywords):
+            resolutions.append(content)
+
+    return list(dict.fromkeys(resolutions))[:8]
+
+
+def _current_state(messages) -> str:
+    user_messages = [
+        m.content.strip()
+        for m in messages
+        if m.role == "user"
+    ]
+
+    if not user_messages:
+        return ""
+
+    return (
+        "The discussion is currently focused on:\n\n"
+        f"{user_messages[-1]}"
+    )
+
+
+def _next_task(messages) -> str:
+    user_messages = [
+        m.content.strip()
+        for m in messages
+        if m.role == "user"
+    ]
+
+    if len(user_messages) < 2:
+        return user_messages[-1] if user_messages else ""
+
+    return user_messages[-1]
+
+
+def _extract_code_blocks(messages) -> List[str]:
+    blocks = []
+
+    for msg in messages:
+        content = msg.content
+
         in_block = False
-        current_block = []
-        for line in msg.content.splitlines():
+        current = []
+
+        for line in content.splitlines():
             if line.strip().startswith("```"):
                 if in_block:
-                    if current_block:
-                        blocks.append({
-                            "role": msg.role,
-                            "code": "\n".join(current_block),
-                        })
-                    current_block = []
+                    if current:
+                        blocks.append(
+                            "\n".join(current)
+                        )
+                    current = []
                     in_block = False
                 else:
                     in_block = True
             elif in_block:
-                current_block.append(line)
-    return blocks
+                current.append(line)
+
+    return blocks[:3]
 
 
-def _extract_errors(messages) -> List[str]:
-    error_keywords = [
-        "error", "exception", "traceback",
-        "failed", "undefined", "typeerror",
-        "syntaxerror", "nameerror", "valueerror",
-    ]
-    errors = []
-    for msg in messages:
-        for line in msg.content.splitlines():
-            line_lower = line.lower()
-            if any(keyword in line_lower for keyword in error_keywords):
-                cleaned = line.strip()
-                if cleaned and len(cleaned) > 10:
-                    errors.append(cleaned)
-    return list(dict.fromkeys(errors))[:5]
-
-
-def _truncate(text: str, max_length: int) -> str:
+def _truncate(
+    text: str,
+    max_length: int,
+) -> str:
     if len(text) <= max_length:
         return text
+
     return text[:max_length] + "..."

@@ -27,6 +27,7 @@ class ContextStrategy(str, Enum):
     concise = "concise"
     technical = "technical"
     creative = "creative"
+    full_ai = "full_ai"
 
 
 class TargetPlatform(str, Enum):
