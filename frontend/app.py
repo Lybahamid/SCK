@@ -47,6 +47,7 @@ with tab1:
         "technical",
         "creative",
         "full_ai",
+        "handoff_ai",
     ],
 )
 
