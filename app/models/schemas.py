@@ -28,7 +28,7 @@ class ContextStrategy(str, Enum):
     technical = "technical"
     creative = "creative"
     full_ai = "full_ai"
-
+    handoff_ai = "handoff_ai"
 
 class TargetPlatform(str, Enum):
     chatgpt = "chatgpt"
