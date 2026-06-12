@@ -65,6 +65,26 @@ class ExtensionPayload(BaseModel):
 
 
 # ============================================================================
+# HELPERS
+# ============================================================================
+
+def _normalize_raw_text(text: str) -> str:
+    """
+    Normalizes raw pasted text so it behaves consistently whether the caller
+    sends actual newline characters or escaped sequences like \\n from curl/JSON.
+    """
+
+    if not text:
+        return text
+
+    return (
+        text.replace("\\r\\n", "\n")
+        .replace("\\n", "\n")
+        .replace("\\r", "\n")
+    )
+
+
+# ============================================================================
 # HEALTH
 # ============================================================================
 
@@ -207,7 +227,9 @@ async def parse_text(
     """
 
     try:
-        if not request.text.strip():
+        normalized_text = _normalize_raw_text(request.text)
+
+        if not normalized_text.strip():
             raise HTTPException(
                 status_code=400,
                 detail="Text input cannot be empty.",
@@ -215,7 +237,7 @@ async def parse_text(
 
         parser = RawTextParser()
 
-        parsed_session = parser.parse(request.text)
+        parsed_session = parser.parse(normalized_text)
 
         # Override source platform
         parsed_session.source_platform = request.source_platform
