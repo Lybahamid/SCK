@@ -6,7 +6,7 @@ from app.api.routes import router
 app = FastAPI(
     title=settings.APP_NAME,
     version=settings.APP_VERSION,
-    description="Open source AI session context keeper",
+    description="Session Context Keeper (SCK) - Open source AI conversation continuity engine.",
     docs_url="/docs",
     redoc_url="/redoc",
 )
@@ -24,7 +24,8 @@ app.add_middleware(
 app.include_router(router, prefix="/api")
 
 
-@app.get("/")
+# Hide root endpoint from Swagger UI using include_in_schema=False
+@app.get("/", include_in_schema=False)
 async def root():
     return {
         "app": settings.APP_NAME,
@@ -33,9 +34,5 @@ async def root():
         "docs": "/docs",
     }
 
-
-@app.get("/health")
-async def health_check():
-    return {
-        "status": "healthy",
-    }
+# Removed the duplicate /health endpoint since it is now
+# properly handled and documented in app/api/routes.py as /api/health
