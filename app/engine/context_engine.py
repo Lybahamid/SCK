@@ -6,6 +6,10 @@ from app.engine.strategies import (
     creative,
     full_ai,
     handoff_ai,
+    debug_ai,
+    code_review_ai,
+    documentation_ai,
+    design_ai,
 )
 
 from app.engine.platform_formatter import format_for_platform
@@ -18,6 +22,10 @@ STRATEGIES = {
     "creative": creative.generate,
     "full_ai": full_ai.generate,
     "handoff_ai": handoff_ai.generate,
+    "debug_ai": debug_ai.generate,
+    "code_review_ai": code_review_ai.generate,
+    "documentation_ai": documentation_ai.generate,
+    "design_ai": design_ai.generate,
 }
 
 
@@ -38,7 +46,8 @@ class ContextEngine:
 
         Parameters:
             session         : ParsedSession object from any parser
-            strategy        : full | concise | technical | creative | full_ai | handoff_ai
+            strategy        : full | concise | technical | creative | full_ai | handoff_ai |
+                             debug_ai | code_review_ai | documentation_ai | design_ai
             target_platform : chatgpt | claude | gemini | generic
 
         Returns:
